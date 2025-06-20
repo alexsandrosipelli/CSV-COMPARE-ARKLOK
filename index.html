@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparação de Dados de Impressoras</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        h2 {
+            color: #FF6347;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Comparação de Trocas de Peças em Impressoras</h1>
+
+    <label for="csvFileOld">Arquivo CSV do dia anterior:</label>
+    <input type="file" id="csvFileOld" accept=".csv">
+    
+    <label for="csvFileNew">Arquivo CSV do dia atual:</label>
+    <input type="file" id="csvFileNew" accept=".csv">
+    
+    <button onclick="processCSV()">Comparar Dados</button>
+
+    <h2>Resultados das Comparações</h2>
+    <table id="resultTable">
+        <thead>
+            <tr>
+                <th>Serial Number</th>
+                <th>Motivo da Troca</th>
+                <th>Porcentagem Dia Anterior</th>
+                <th>Porcentagem Dia Atual</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Resultados de trocas indevidas -->
+        </tbody>
+    </table>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        let dataOld = [];
+        let dataNew = [];
+
+        function processCSV() {
+            const fileOld = document.getElementById("csvFileOld").files[0];
+            const fileNew = document.getElementById("csvFileNew").files[0];
+
+            if (!fileOld || !fileNew) {
+                alert("Por favor, selecione os dois arquivos CSV.");
+                return;
+            }
+
+            // Processar o CSV do dia anterior
+            Papa.parse(fileOld, {
+                complete: function(results) {
+                    dataOld = results.data;
+                    processNewCSV(fileNew);
+                },
+                header: true
+            });
+        }
+
+        function processNewCSV(fileNew) {
+            // Processar o CSV do dia atual
+            Papa.parse(fileNew, {
+                complete: function(results) {
+                    dataNew = results.data;
+                    compareData();
+                },
+                header: true
+            });
+        }
+
+        function compareData() {
+            const changes = [];
+            dataNew.forEach(newRow => {
+                const oldRow = dataOld.find(row => row['Serial Number'] === newRow['Serial Number']);
+                if (oldRow) {
+                    const serial = newRow['Serial Number'];
+                    const oldValue = parseFloat(oldRow['Imaging Unit (%)']) || 0;
+                    const newValue = parseFloat(newRow['Imaging Unit (%)']) || 0;
+                    const diff = newValue - oldValue;
+
+                    let motivo = "";
+
+                    // Caso a diferença seja para cima (indicando possível troca indevida)
+                    if (diff > 0) {
+                        motivo = "Possível troca indevida (aumento de porcentagem)";
+                    }
+                    // Caso a diferença seja muito acentuada para baixo
+                    else if (diff < -30) {  // Ajuste esse limite de acordo com a sua análise
+                        motivo = "Possível troca indevida (diminuição acentuada)";
+                    }
+
+                    if (motivo) {
+                        changes.push({
+                            serial: serial,
+                            motivo: motivo,
+                            oldValue: oldValue,
+                            newValue: newValue
+                        });
+                    }
+                }
+            });
+
+            displayResults(changes);
+        }
+
+        function displayResults(changes) {
+            const tbody = document.getElementById("resultTable").getElementsByTagName('tbody')[0];
+            tbody.innerHTML = ""; // Limpar resultados anteriores
+
+            changes.forEach(change => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${change.serial}</td>
+                    <td>${change.motivo}</td>
+                    <td>${change.oldValue}%</td>
+                    <td>${change.newValue}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (changes.length === 0) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = "<td colspan='4'>Nenhuma troca indevida detectada.</td>";
+                tbody.appendChild(tr);
+            }
+        }
+    </script>
+</body>
+</html>
