@@ -51,8 +51,9 @@
             <tr>
                 <th>Serial Number</th>
                 <th>Motivo da Troca</th>
-                <th>Porcentagem Dia Anterior</th>
-                <th>Porcentagem Dia Atual</th>
+                <th>Coluna</th>
+                <th>Valor Dia Anterior</th>
+                <th>Valor Dia Atual</th>
             </tr>
         </thead>
         <tbody>
@@ -64,6 +65,11 @@
     <script>
         let dataOld = [];
         let dataNew = [];
+        let columnsToCheck = [
+            'Black (%)', 'Magenta (%)', 'Yellow (%)', 'Cyan (%)',
+            'Black Photoconductor (%)', 'Imaging Unit (%)', 'Maintenance Kit (%)',
+            'Mono Lifetime Count', 'Color Lifetime Count'
+        ];
 
         function processCSV() {
             const fileOld = document.getElementById("csvFileOld").files[0];
@@ -101,29 +107,33 @@
                 const oldRow = dataOld.find(row => row['Serial Number'] === newRow['Serial Number']);
                 if (oldRow) {
                     const serial = newRow['Serial Number'];
-                    const oldValue = parseFloat(oldRow['Imaging Unit (%)']) || 0;
-                    const newValue = parseFloat(newRow['Imaging Unit (%)']) || 0;
-                    const diff = newValue - oldValue;
 
-                    let motivo = "";
+                    columnsToCheck.forEach(column => {
+                        const oldValue = parseFloat(oldRow[column]) || 0;
+                        const newValue = parseFloat(newRow[column]) || 0;
+                        const diff = newValue - oldValue;
 
-                    // Caso a diferença seja para cima (indicando possível troca indevida)
-                    if (diff > 0) {
-                        motivo = "Possível troca indevida (aumento de porcentagem)";
-                    }
-                    // Caso a diferença seja muito acentuada para baixo
-                    else if (diff < -30) {  // Ajuste esse limite de acordo com a sua análise
-                        motivo = "Possível troca indevida (diminuição acentuada)";
-                    }
+                        let motivo = "";
 
-                    if (motivo) {
-                        changes.push({
-                            serial: serial,
-                            motivo: motivo,
-                            oldValue: oldValue,
-                            newValue: newValue
-                        });
-                    }
+                        // Caso a diferença seja para cima (indicando possível troca indevida)
+                        if (diff > 0) {
+                            motivo = "Possível troca indevida (aumento de porcentagem)";
+                        }
+                        // Caso a diferença seja muito acentuada para baixo
+                        else if (diff < -30) {  // Ajuste esse limite de acordo com a sua análise
+                            motivo = "Possível troca indevida (diminuição acentuada)";
+                        }
+
+                        if (motivo) {
+                            changes.push({
+                                serial: serial,
+                                motivo: motivo,
+                                column: column,
+                                oldValue: oldValue,
+                                newValue: newValue
+                            });
+                        }
+                    });
                 }
             });
 
@@ -139,6 +149,7 @@
                 tr.innerHTML = `
                     <td>${change.serial}</td>
                     <td>${change.motivo}</td>
+                    <td>${change.column}</td>
                     <td>${change.oldValue}%</td>
                     <td>${change.newValue}%</td>
                 `;
@@ -147,7 +158,7 @@
 
             if (changes.length === 0) {
                 const tr = document.createElement("tr");
-                tr.innerHTML = "<td colspan='4'>Nenhuma troca indevida detectada.</td>";
+                tr.innerHTML = "<td colspan='5'>Nenhuma troca indevida detectada.</td>";
                 tbody.appendChild(tr);
             }
         }
