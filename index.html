@@ -14,7 +14,8 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f7f7f7;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #f7f7f7 40%, #ffe3dc);
             color: #333;
             padding: 20px;
             max-width: 1200px;
@@ -24,29 +25,36 @@
         header {
             text-align: center;
             margin-bottom: 40px;
+            animation: fadeInDown 1s ease-in-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         header img {
-            max-width: 200px;
+            max-width: 180px;
             margin-bottom: 20px;
         }
 
         h1 {
-            font-size: 2.5rem;
-            color: #FF6347;
+            font-size: 2.8rem;
+            color: #FF4500;
             margin-bottom: 10px;
+            font-weight: bold;
         }
 
         h2 {
-            font-size: 1.8rem;
-            color: #333;
-            margin-top: 40px;
+            font-size: 2rem;
+            color: #FF6347;
             margin-bottom: 20px;
-        }
-
-        p {
-            font-size: 1.1rem;
-            margin-top: 10px;
         }
 
         label {
@@ -57,39 +65,46 @@
         input[type="file"] {
             padding: 10px;
             font-size: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
             background-color: #fff;
             margin: 10px 0;
+            transition: border 0.3s ease;
         }
 
-        .buttons {
+        input[type="file"]:hover {
+            border-color: #FF6347;
+        }
+
+        .button-group {
             margin-top: 20px;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
             justify-content: center;
         }
 
         button {
-            padding: 12px 20px;
-            background-color: #FF6347;
+            padding: 14px 24px;
+            background: linear-gradient(45deg, #FF6347, #FF4500);
             color: white;
             border: none;
-            border-radius: 5px;
-            font-size: 1.1rem;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: transform 0.2s, background-color 0.3s;
         }
 
         button:hover {
+            transform: scale(1.05);
             background-color: #e0533d;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 30px;
         }
 
         table, th, td {
@@ -97,7 +112,7 @@
         }
 
         th, td {
-            padding: 12px 15px;
+            padding: 12px 20px;
             text-align: left;
         }
 
@@ -106,22 +121,30 @@
             color: white;
         }
 
+        td {
+            background-color: #fefefe;
+        }
+
         tr:nth-child(even) td {
-            background-color: #f1f1f1;
+            background-color: #f9f9f9;
         }
 
         tr:hover td {
-            background-color: #f0f0f0;
+            background-color: #f1f1f1;
         }
 
         footer {
             text-align: center;
-            margin-top: 50px;
-            font-size: 0.95rem;
-            color: #777;
+            margin-top: 40px;
+            font-size: 1rem;
+            color: #555;
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
             h1 {
                 font-size: 2rem;
             }
@@ -134,9 +157,9 @@
                 font-size: 0.9rem;
             }
 
-            .buttons {
-                flex-direction: column;
-                align-items: center;
+            button {
+                font-size: 1rem;
+                padding: 10px 15px;
             }
         }
     </style>
@@ -144,9 +167,9 @@
 
 <body>
     <header>
-        <img src="data:image/png;base64,..." alt="Logo da Arklok"> <!-- Mantido base64 -->
-        <h1>Comparação de Trocas de Peças em Impressoras</h1>
-        <p>Verifique se houve troca indevida de peças com base nos dados de consumo.</p>
+        <img src="data:image/png;base64,..." alt="Logo da Arklok">
+        <h1>Análise Inteligente de Impressoras</h1>
+        <p>Compare os dados de consumo e identifique trocas indevidas de forma visual e eficiente.</p>
     </header>
 
     <section>
@@ -156,7 +179,7 @@
         <label for="csvFileNew">Arquivo CSV do dia atual:</label>
         <input type="file" id="csvFileNew" accept=".csv">
 
-        <div class="buttons">
+        <div class="button-group">
             <button onclick="processCSV()">Comparar Dados</button>
             <button onclick="window.open('https://alexsandrosipelli.github.io/ANALISAR-LOG-IMPRESSORAS/', '_blank')">
                 Analisar Logs de Impressoras
@@ -170,111 +193,19 @@
             <tr>
                 <th>Serial Number</th>
                 <th>Motivo da Troca</th>
-                <th>Coluna</th>
-                <th>Valor Dia Anterior</th>
-                <th>Valor Dia Atual</th>
+                <th>Componente</th>
+                <th>Valor Anterior</th>
+                <th>Valor Atual</th>
             </tr>
         </thead>
         <tbody>
-            <!-- Resultados aparecerão aqui -->
+            <!-- Resultados dinâmicos -->
         </tbody>
     </table>
 
     <footer>
-        <p>&copy; 2025 Arklok - Todos os direitos reservados</p>
+        <p>&copy; 2025 Arklok - Inteligência em Impressão</p>
     </footer>
-
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script>
-        let dataOld = [];
-        let dataNew = [];
-        const columnsToCheck = [
-            'Black (%)', 'Magenta (%)', 'Yellow (%)', 'Cyan (%)',
-            'Black Photoconductor (%)', 'Imaging Unit (%)', 'Maintenance Kit (%)'
-        ];
-
-        function processCSV() {
-            const fileOld = document.getElementById("csvFileOld").files[0];
-            const fileNew = document.getElementById("csvFileNew").files[0];
-
-            if (!fileOld || !fileNew) {
-                alert("Por favor, selecione os dois arquivos CSV.");
-                return;
-            }
-
-            Papa.parse(fileOld, {
-                complete: function(results) {
-                    dataOld = results.data;
-                    Papa.parse(fileNew, {
-                        complete: function(results) {
-                            dataNew = results.data;
-                            compareData();
-                        },
-                        header: true
-                    });
-                },
-                header: true
-            });
-        }
-
-        function compareData() {
-            const changes = [];
-            dataNew.forEach(newRow => {
-                const oldRow = dataOld.find(row => row['Serial Number'] === newRow['Serial Number']);
-                if (oldRow) {
-                    const serial = newRow['Serial Number'];
-
-                    columnsToCheck.forEach(column => {
-                        const oldValue = parseFloat(oldRow[column]) || 0;
-                        const newValue = parseFloat(newRow[column]) || 0;
-                        const diff = newValue - oldValue;
-                        let motivo = "";
-
-                        if (diff > 0) {
-                            motivo = "Possível troca indevida (aumento)";
-                        } else if (diff < -30) {
-                            motivo = "Possível troca indevida (queda brusca)";
-                        }
-
-                        if (motivo) {
-                            changes.push({
-                                serial: serial,
-                                motivo: motivo,
-                                column: column,
-                                oldValue: oldValue,
-                                newValue: newValue
-                            });
-                        }
-                    });
-                }
-            });
-
-            displayResults(changes);
-        }
-
-        function displayResults(changes) {
-            const tbody = document.getElementById("resultTable").querySelector('tbody');
-            tbody.innerHTML = "";
-
-            if (changes.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='5'>Nenhuma troca indevida detectada.</td></tr>";
-                return;
-            }
-
-            changes.forEach(change => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${change.serial}</td>
-                    <td>${change.motivo}</td>
-                    <td>${change.column}</td>
-                    <td>${change.oldValue}%</td>
-                    <td>${change.newValue}%</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-    </script>
 </body>
 
 </html>
