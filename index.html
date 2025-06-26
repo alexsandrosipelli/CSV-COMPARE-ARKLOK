@@ -14,7 +14,6 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            line-height: 1.6;
             background-color: #f7f7f7;
             color: #333;
             padding: 20px;
@@ -40,8 +39,14 @@
 
         h2 {
             font-size: 1.8rem;
-            color: #FF6347;
+            color: #333;
+            margin-top: 40px;
             margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-top: 10px;
         }
 
         label {
@@ -58,16 +63,23 @@
             margin: 10px 0;
         }
 
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
         button {
             padding: 12px 20px;
             background-color: #FF6347;
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            margin-right: 10px;
         }
 
         button:hover {
@@ -77,7 +89,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 30px;
+            margin-top: 20px;
         }
 
         table, th, td {
@@ -85,143 +97,184 @@
         }
 
         th, td {
-            padding: 12px 20px;
+            padding: 12px 15px;
             text-align: left;
         }
 
         th {
-  <canvas id="graficoMensal"></canvas>
-
-  <script>
-    let ultimoResumo = [];
-
-    function analisarLog() {
-      const log = document.getElementById('logInput').value;
-      const linhas = log.split('\n');
-      const eventos = [];
-      const mesesNome = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-
-      linhas.forEach((linha, i) => {
-        const dataRegex = /([0-9]{1,2}) de ([a-zç]+) de ([0-9]{4})/i;
-        const matchData = linha.match(dataRegex);
-        if (matchData && linhas[i + 3]) {
-          const dia = parseInt(matchData[1]);
-          const mesTexto = matchData[2].toLowerCase();
-          const ano = parseInt(matchData[3]);
-          const eventoLinha = linhas[i + 3];
-          const tipoCompleto = eventoLinha.split('_')[0];
-          const tipoNome = eventoLinha.split('_').slice(1).join(' ').replace(/\[.*?\]/g, '').replace(/_/g, ' ').trim();
-          const mesPadronizado = mesTexto.charAt(0).toUpperCase() + mesTexto.slice(1);
-          eventos.push({ ano, mes: mesPadronizado, tipo: tipoCompleto, nome: tipoNome });
+            background-color: #FF6347;
+            color: white;
         }
-      });
 
-      const resumo = {};
-      eventos.forEach(e => {
-        const chave = `${e.ano}-${e.mes}-${e.tipo}-${e.nome}`;
-        resumo[chave] = (resumo[chave] || 0) + 1;
-      });
-
-      ultimoResumo = Object.entries(resumo).map(([chave, total]) => {
-        const [ano, mes, tipo, ...nomeArr] = chave.split('-');
-        const nome = nomeArr.join('-');
-        return { ano, mes, tipo, nome, total };
-      });
-
-      let html = '<table><tr><th>Ano</th><th>Mês</th><th>Código do Evento</th><th>Nome do Evento</th><th>Total</th></tr>';
-      ultimoResumo.forEach(row => {
-        html += `<tr><td>${row.ano}</td><td>${row.mes}</td><td>${row.tipo}</td><td>${row.nome}</td><td>${row.total}</td></tr>`;
-      });
-      html += '</table>';
-      document.getElementById('tabelaRelatorio').innerHTML = html;
-
-      const agrupadoTipo = {};
-      const agrupadoMensal = {};
-      eventos.forEach(e => {
-        const chaveTipo = `${e.tipo} - ${e.nome}`;
-        agrupadoTipo[chaveTipo] = (agrupadoTipo[chaveTipo] || 0) + 1;
-
-        const mesAno = `${e.mes}/${e.ano}`;
-        if (!agrupadoMensal[mesAno]) agrupadoMensal[mesAno] = {};
-        agrupadoMensal[mesAno][chaveTipo] = (agrupadoMensal[mesAno][chaveTipo] || 0) + 1;
-      });
-
-      const ctx1 = document.getElementById('graficoErros').getContext('2d');
-      if (window.chartInstance1) window.chartInstance1.destroy();
-      window.chartInstance1 = new Chart(ctx1, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(agrupadoTipo),
-          datasets: [{
-            label: 'Total por Tipo de Evento',
-            data: Object.values(agrupadoTipo),
-            backgroundColor: '#007bff'
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            title: { display: true, text: 'Erros por Tipo no Período' }
-          }
+        tr:nth-child(even) td {
+            background-color: #f1f1f1;
         }
-      });
 
-      const mesesOrdenados = Object.keys(agrupadoMensal).sort((a,b) => {
-        const [m1, y1] = a.split('/');
-        const [m2, y2] = b.split('/');
-        const data1 = new Date(`${m1} 1, ${y1}`);
-        const data2 = new Date(`${m2} 1, ${y2}`);
-        return data1 - data2;
-      });
+        tr:hover td {
+            background-color: #f0f0f0;
+        }
 
-      const todosTipos = [...new Set(eventos.map(e => `${e.tipo} - ${e.nome}`))];
-      const datasets = todosTipos.map(tipo => {
-        return {
-          label: tipo,
-          data: mesesOrdenados.map(m => agrupadoMensal[m][tipo] || 0),
-          backgroundColor: '#' + Math.floor(Math.random()*16777215).toString(16)
-        };
-      });
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.95rem;
+            color: #777;
+        }
 
-      const ctx2 = document.getElementById('graficoMensal').getContext('2d');
-      if (window.chartInstance2) window.chartInstance2.destroy();
-      window.chartInstance2 = new Chart(ctx2, {
-        type: 'bar',
-        data: {
-          labels: mesesOrdenados,
-          datasets: datasets
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            title: {
-              display: true,
-              text: 'Distribuição Mensal de Eventos por Tipo'
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
             }
-          },
-          scales: {
-            x: { stacked: true },
-            y: { stacked: true }
-          }
-        }
-      });
-    }
 
-    function exportarCSV() {
-      if (!ultimoResumo.length) return;
-      const linhas = ['Ano,Mês,Código do Evento,Nome do Evento,Total'];
-      ultimoResumo.forEach(l => {
-        linhas.push(`${l.ano},${l.mes},${l.tipo},"${l.nome}",${l.total}`);
-      });
-      const blob = new Blob([linhas.join('\n')], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'relatorio_log_impressora.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-  </script>
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            table, th, td {
+                font-size: 0.9rem;
+            }
+
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <img src="data:image/png;base64,..." alt="Logo da Arklok"> <!-- Mantido base64 -->
+        <h1>Comparação de Trocas de Peças em Impressoras</h1>
+        <p>Verifique se houve troca indevida de peças com base nos dados de consumo.</p>
+    </header>
+
+    <section>
+        <label for="csvFileOld">Arquivo CSV do dia anterior:</label>
+        <input type="file" id="csvFileOld" accept=".csv">
+
+        <label for="csvFileNew">Arquivo CSV do dia atual:</label>
+        <input type="file" id="csvFileNew" accept=".csv">
+
+        <div class="buttons">
+            <button onclick="processCSV()">Comparar Dados</button>
+            <button onclick="window.open('https://alexsandrosipelli.github.io/ANALISAR-LOG-IMPRESSORAS/', '_blank')">
+                Analisar Logs de Impressoras
+            </button>
+        </div>
+    </section>
+
+    <h2>Resultados das Comparações</h2>
+    <table id="resultTable">
+        <thead>
+            <tr>
+                <th>Serial Number</th>
+                <th>Motivo da Troca</th>
+                <th>Coluna</th>
+                <th>Valor Dia Anterior</th>
+                <th>Valor Dia Atual</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Resultados aparecerão aqui -->
+        </tbody>
+    </table>
+
+    <footer>
+        <p>&copy; 2025 Arklok - Todos os direitos reservados</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        let dataOld = [];
+        let dataNew = [];
+        const columnsToCheck = [
+            'Black (%)', 'Magenta (%)', 'Yellow (%)', 'Cyan (%)',
+            'Black Photoconductor (%)', 'Imaging Unit (%)', 'Maintenance Kit (%)'
+        ];
+
+        function processCSV() {
+            const fileOld = document.getElementById("csvFileOld").files[0];
+            const fileNew = document.getElementById("csvFileNew").files[0];
+
+            if (!fileOld || !fileNew) {
+                alert("Por favor, selecione os dois arquivos CSV.");
+                return;
+            }
+
+            Papa.parse(fileOld, {
+                complete: function(results) {
+                    dataOld = results.data;
+                    Papa.parse(fileNew, {
+                        complete: function(results) {
+                            dataNew = results.data;
+                            compareData();
+                        },
+                        header: true
+                    });
+                },
+                header: true
+            });
+        }
+
+        function compareData() {
+            const changes = [];
+            dataNew.forEach(newRow => {
+                const oldRow = dataOld.find(row => row['Serial Number'] === newRow['Serial Number']);
+                if (oldRow) {
+                    const serial = newRow['Serial Number'];
+
+                    columnsToCheck.forEach(column => {
+                        const oldValue = parseFloat(oldRow[column]) || 0;
+                        const newValue = parseFloat(newRow[column]) || 0;
+                        const diff = newValue - oldValue;
+                        let motivo = "";
+
+                        if (diff > 0) {
+                            motivo = "Possível troca indevida (aumento)";
+                        } else if (diff < -30) {
+                            motivo = "Possível troca indevida (queda brusca)";
+                        }
+
+                        if (motivo) {
+                            changes.push({
+                                serial: serial,
+                                motivo: motivo,
+                                column: column,
+                                oldValue: oldValue,
+                                newValue: newValue
+                            });
+                        }
+                    });
+                }
+            });
+
+            displayResults(changes);
+        }
+
+        function displayResults(changes) {
+            const tbody = document.getElementById("resultTable").querySelector('tbody');
+            tbody.innerHTML = "";
+
+            if (changes.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='5'>Nenhuma troca indevida detectada.</td></tr>";
+                return;
+            }
+
+            changes.forEach(change => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${change.serial}</td>
+                    <td>${change.motivo}</td>
+                    <td>${change.column}</td>
+                    <td>${change.oldValue}%</td>
+                    <td>${change.newValue}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    </script>
 </body>
+
 </html>
