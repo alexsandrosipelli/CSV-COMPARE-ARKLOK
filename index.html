@@ -140,6 +140,11 @@
             color: #555;
         }
 
+        canvas {
+            max-width: 100%;
+            margin-top: 30px;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -181,6 +186,7 @@
 
         <div class="button-group">
             <button onclick="processCSV()">Comparar Dados</button>
+            <button onclick="downloadCSV()">Baixar Resultado</button>
             <button onclick="window.open('https://alexsandrosipelli.github.io/ANALISAR-LOG-IMPRESSORAS/', '_blank')">
                 Analisar Logs de Impressoras
             </button>
@@ -203,14 +209,18 @@
         </tbody>
     </table>
 
+    <canvas id="chart"></canvas>
+
     <footer>
         <p>&copy; 2025 Arklok - Inteligência em Impressão</p>
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let dataOld = [];
         let dataNew = [];
+        let chart;
         const columnsToCheck = [
             'Black (%)', 'Magenta (%)', 'Yellow (%)', 'Cyan (%)',
             'Black Photoconductor (%)', 'Imaging Unit (%)', 'Maintenance Kit (%)'
@@ -239,6 +249,8 @@
                 header: true
             });
         }
+
+        let latestChanges = [];
 
         function compareData() {
             const tbody = document.getElementById("resultTable").querySelector("tbody");
@@ -275,6 +287,8 @@
                 }
             });
 
+            latestChanges = changes;
+
             if (changes.length === 0) {
                 tbody.innerHTML = "<tr><td colspan='5'>Nenhuma troca indevida detectada.</td></tr>";
                 return;
@@ -290,6 +304,74 @@
                     <td>${change.newValue}%</td>
                 `;
                 tbody.appendChild(row);
+            });
+
+            generateChart(changes);
+        }
+
+        function downloadCSV() {
+            if (!latestChanges.length) {
+                alert("Nenhum dado para exportar.");
+                return;
+            }
+
+            let csv = 'Serial Number,Motivo da Troca,Componente,Valor Anterior,Valor Atual\n';
+            latestChanges.forEach(change => {
+                csv += `${change.serial},${change.motivo},${change.column},${change.oldValue},${change.newValue}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'resultado_trocas_individas.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function generateChart(changes) {
+            const ctx = document.getElementById('chart').getContext('2d');
+            const labels = changes.map(c => `${c.serial} - ${c.column}`);
+            const oldValues = changes.map(c => c.oldValue);
+            const newValues = changes.map(c => c.newValue);
+
+            if (chart) chart.destroy();
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Valor Anterior (%)',
+                            data: oldValues,
+                            backgroundColor: '#8884d8'
+                        },
+                        {
+                            label: 'Valor Atual (%)',
+                            data: newValues,
+                            backgroundColor: '#FF6347'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Comparação Visual de Trocas'
+                        }
+                    }
+                }
             });
         }
     </script>
