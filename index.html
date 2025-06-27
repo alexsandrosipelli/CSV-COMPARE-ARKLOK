@@ -1,380 +1,445 @@
-<!DOCTYPE html>
-<html lang="pt">
-
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comparação de Dados de Impressoras</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Análise Inteligente de Impressoras</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #f7f7f7 40%, #ffe3dc);
-            color: #333;
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top left, #ffe8e0, #fff0f5, #e0f7fa);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+      animation: gradientShift 20s ease infinite;
+      background-size: 400% 400%;
+    }
 
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            animation: fadeInDown 1s ease-in-out;
-        }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
 
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    header {
+      text-align: center;
+      animation: fadeInDown 1s ease-out;
+    }
 
-        header img {
-            max-width: 180px;
-            margin-bottom: 20px;
-        }
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-        h1 {
-            font-size: 2.8rem;
-            color: #FF4500;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
+    header img {
+      width: 180px;
+      margin-bottom: 20px;
+    }
 
-        h2 {
-            font-size: 2rem;
-            color: #FF6347;
-            margin-bottom: 20px;
-        }
+    h1 {
+      font-size: 2.5rem;
+      color: #FF4500;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
 
-        label {
-            font-size: 1.1rem;
-            margin-right: 10px;
-        }
+    p {
+      font-size: 1.1rem;
+      color: #444;
+    }
 
-        input[type="file"] {
-            padding: 10px;
-            font-size: 1rem;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            background-color: #fff;
-            margin: 10px 0;
-            transition: border 0.3s ease;
-        }
+    section {
+      text-align: center;
+      margin: 40px auto;
+      max-width: 1000px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+    }
 
-        input[type="file"]:hover {
-            border-color: #FF6347;
-        }
+    label {
+      display: block;
+      font-size: 1rem;
+      margin: 15px 0 5px;
+      font-weight: 600;
+    }
 
-        .button-group {
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-        }
+    input[type="file"] {
+      padding: 12px;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      background-color: #fff;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 20px;
+    }
 
-        button {
-            padding: 14px 24px;
-            background: linear-gradient(45deg, #FF6347, #FF4500);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.3s;
-        }
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
 
-        button:hover {
-            transform: scale(1.05);
-            background-color: #e0533d;
-        }
+    button {
+      padding: 14px 24px;
+      background: linear-gradient(45deg, #FF6347, #FF4500);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 30px;
-        }
+    button:hover {
+      transform: translateY(-3px);
+      background: #e04c2f;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
 
-        table, th, td {
-            border: 1px solid #ddd;
-        }
+    h2 {
+      font-size: 2rem;
+      color: #FF6347;
+      margin: 40px 0 20px;
+      text-align: center;
+    }
 
-        th, td {
-            padding: 12px 20px;
-            text-align: left;
-        }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
 
-        th {
-            background-color: #FF6347;
-            color: white;
-        }
+    th, td {
+      padding: 14px 18px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
 
-        td {
-            background-color: #fefefe;
-        }
+    th {
+      background-color: #FF6347;
+      color: white;
+      font-weight: 600;
+    }
 
-        tr:nth-child(even) td {
-            background-color: #f9f9f9;
-        }
+    tr:nth-child(even) td {
+      background-color: #fdf4f1;
+    }
 
-        tr:hover td {
-            background-color: #f1f1f1;
-        }
+    tr:hover td {
+      background-color: #ffe7dd;
+    }
 
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 1rem;
-            color: #555;
-        }
+    canvas {
+      margin-top: 40px;
+      max-width: 100%;
+    }
 
-        canvas {
-            max-width: 100%;
-            margin-top: 30px;
-        }
+    footer {
+      text-align: center;
+      margin-top: 80px;
+      font-size: 0.9rem;
+      color: #888;
+    }
 
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
 
-            h1 {
-                font-size: 2rem;
-            }
+      p, label {
+        font-size: 0.95rem;
+      }
 
-            h2 {
-                font-size: 1.5rem;
-            }
+      button {
+        font-size: 1rem;
+        padding: 10px 16px;
+      }
 
-            table, th, td {
-                font-size: 0.9rem;
-            }
-
-            button {
-                font-size: 1rem;
-                padding: 10px 15px;
-            }
-        }
-    </style>
+      table, th, td {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
 </head>
-
 <body>
-    <header>
-        <img src="https://arknet.arklok.com.br/assets/img/logos/logo-arklok.png" alt="Logo da Arklok">
-        <h1>Análise Inteligente de Impressoras</h1>
-        <p>Compare os dados de consumo e identifique trocas indevidas de forma visual e eficiente.</p>
-    </header>
+  <header>
+    <img src="https://arknet.arklok.com.br/assets/img/logos/logo-arklok.png" alt="Logo Arklok" />
+    <h1>Análise Inteligente de Impressoras</h1>
+    <p>Compare os dados de consumo e identifique trocas indevidas com precisão visual e eficiência corporativa.</p>
+  </header>
 
-    <section>
-        <label for="csvFileOld">Arquivo CSV do dia anterior:</label>
-        <input type="file" id="csvFileOld" accept=".csv">
+  <section>
+    <label for="csvFileOld">Arquivo CSV do dia anterior:</label>
+    <input type="file" id="csvFileOld" accept=".csv">
 
-        <label for="csvFileNew">Arquivo CSV do dia atual:</label>
-        <input type="file" id="csvFileNew" accept=".csv">
+    <label for="csvFileNew">Arquivo CSV do dia atual:</label>
+    <input type="file" id="csvFileNew" accept=".csv">
 
-        <div class="button-group">
-            <button onclick="processCSV()">Comparar Dados</button>
-            <button onclick="downloadCSV()">Baixar Resultado</button>
-            <button onclick="window.open('https://alexsandrosipelli.github.io/ANALISAR-LOG-IMPRESSORAS/', '_blank')">
-                Analisar Logs de Impressoras
-            </button>
-        </div>
-    </section>
+    <div class="button-group">
+      <button onclick="processCSV()">🔍 Comparar Dados</button>
+      <button onclick="downloadCSV()">⬇️ Baixar Resultado</button>
+      <button onclick="window.open('https://alexsandrosipelli.github.io/ANALISAR-LOG-IMPRESSORAS/', '_blank')">📊 Analisar Logs de Impressoras</button>
+      <button onclick="showSummary()">📌 Resumo</button>
+    </div>
+  </section>
 
-    <h2>Resultados das Comparações</h2>
+  <section>
+    <h2>📈 Resultados das Comparações</h2>
     <table id="resultTable">
-        <thead>
-            <tr>
-                <th>Serial Number</th>
-                <th>Motivo da Troca</th>
-                <th>Componente</th>
-                <th>Valor Anterior</th>
-                <th>Valor Atual</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Resultados dinâmicos -->
-        </tbody>
+      <thead>
+        <tr>
+          <th>Serial Number</th>
+          <th>Motivo da Troca</th>
+          <th>Componente</th>
+          <th>Valor Anterior</th>
+          <th>Valor Atual</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="5">Nenhuma troca indevida detectada.</td></tr>
+      </tbody>
     </table>
-
     <canvas id="chart"></canvas>
+    <div id="summary" style="display:none; margin-top: 40px; padding: 20px; background: #fff4ec; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+      <h3>Resumo Executivo 📊</h3>
+      <p id="summaryText"></p>
+    </div>
+  </section>
 
-    <footer>
-        <p>&copy; 2025 Arklok - Inteligência em Impressão</p>
-    </footer>
+  <footer>
+    <p>&copy; 2025 Arklok - Inteligência em Impressão e Performance de TI</p>
+  </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        let dataOld = [];
-        let dataNew = [];
-        let chart;
-        const columnsToCheck = [
-            'Black (%)', 'Magenta (%)', 'Yellow (%)', 'Cyan (%)',
-            'Black Photoconductor (%)', 'Imaging Unit (%)', 'Maintenance Kit (%)'
-        ];
+<script>
+  let dataOld = [];
+  let dataNew = [];
+  let chart;
+  let latestChanges = [];
 
-        function processCSV() {
-            const fileOld = document.getElementById("csvFileOld").files[0];
-            const fileNew = document.getElementById("csvFileNew").files[0];
+  const columnAliases = {
+    'Número de série': 'Serial Number',
+    'Preto (%)': 'Black (%)',
+    'Magenta (%)': 'Magenta (%)',
+    'Amarelo (%)': 'Yellow (%)',
+    'Ciano (%)': 'Cyan (%)',
+    'Fotocondutor preto (%)': 'Black Photoconductor (%)',
+    'Unidade de imagem (%)': 'Imaging Unit (%)',
+    'Kit de manutenção (%)': 'Maintenance Kit (%)'
+  };
 
-            if (!fileOld || !fileNew) {
-                alert("Por favor, selecione os dois arquivos CSV.");
-                return;
-            }
+  const expectedColumns = [
+    'Black (%)', 'Magenta (%)', 'Yellow (%)', 'Cyan (%)',
+    'Black Photoconductor (%)', 'Imaging Unit (%)', 'Maintenance Kit (%)'
+  ];
 
-            Papa.parse(fileOld, {
-                complete: function(resultsOld) {
-                    dataOld = resultsOld.data;
-                    Papa.parse(fileNew, {
-                        complete: function(resultsNew) {
-                            dataNew = resultsNew.data;
-                            compareData();
-                        },
-                        header: true
-                    });
-                },
-                header: true
+  function normalizeHeaders(data) {
+    return data.map(row => {
+      const normalized = {};
+      Object.keys(row).forEach(key => {
+        const mappedKey = columnAliases[key] || key;
+        normalized[mappedKey] = row[key];
+      });
+      return normalized;
+    });
+  }
+
+  function processCSV() {
+    const fileOld = document.getElementById("csvFileOld").files[0];
+    const fileNew = document.getElementById("csvFileNew").files[0];
+
+    if (!fileOld || !fileNew) {
+      alert("Por favor, selecione os dois arquivos CSV.");
+      return;
+    }
+
+    Papa.parse(fileOld, {
+      complete: function(resultsOld) {
+        dataOld = normalizeHeaders(resultsOld.data);
+        Papa.parse(fileNew, {
+          complete: function(resultsNew) {
+            dataNew = normalizeHeaders(resultsNew.data);
+            compareData();
+          },
+          header: true
+        });
+      },
+      header: true
+    });
+  }
+
+  function compareData() {
+    const tbody = document.getElementById("resultTable").querySelector("tbody");
+    tbody.innerHTML = "";
+    const changes = [];
+
+    dataNew.forEach(newRow => {
+      const serial = newRow['Serial Number'];
+      const oldRow = dataOld.find(row => row['Serial Number'] === serial);
+
+      if (oldRow) {
+        expectedColumns.forEach(column => {
+          const oldValue = parseFloat(oldRow[column]) || 0;
+          const newValue = parseFloat(newRow[column]) || 0;
+          const diff = newValue - oldValue;
+          let motivo = "";
+
+          if (diff > 0) {
+            motivo = "Possível troca indevida (aumento)";
+          } else if (diff < -30) {
+            motivo = "Possível troca indevida (queda brusca)";
+          }
+
+          if (motivo) {
+            changes.push({
+              serial: serial,
+              motivo: motivo,
+              column: column,
+              oldValue: oldValue,
+              newValue: newValue
             });
+          }
+        });
+      }
+    });
+
+    latestChanges = changes;
+
+    if (changes.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='5'>Nenhuma troca indevida detectada.</td></tr>";
+      return;
+    }
+
+    changes.forEach(change => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${change.serial}</td>
+        <td>${change.motivo}</td>
+        <td>${change.column}</td>
+        <td>${change.oldValue}%</td>
+        <td>${change.newValue}%</td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    generateChart(changes);
+  }
+
+  function downloadCSV() {
+    if (!latestChanges.length) {
+      alert("Nenhum dado para exportar.");
+      return;
+    }
+
+    let csv = 'Serial Number,Motivo da Troca,Componente,Valor Anterior,Valor Atual\n';
+    latestChanges.forEach(change => {
+      csv += `${change.serial},${change.motivo},${change.column},${change.oldValue},${change.newValue}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'resultado_trocas_individas.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function generateChart(changes) {
+    const ctx = document.getElementById('chart').getContext('2d');
+    const labels = changes.map(c => `${c.serial} - ${c.column}`);
+    const oldValues = changes.map(c => c.oldValue);
+    const newValues = changes.map(c => c.newValue);
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Valor Anterior (%)',
+            data: oldValues,
+            backgroundColor: '#8884d8'
+          },
+          {
+            label: 'Valor Atual (%)',
+            data: newValues,
+            backgroundColor: '#FF6347'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: 'Comparação Visual de Trocas'
+          }
         }
+      }
+    });
+  }
+  function showSummary() {
+    const summaryBox = document.getElementById('summary');
+    const summaryText = document.getElementById('summaryText');
 
-        let latestChanges = [];
+    if (!latestChanges.length) {
+      summaryText.innerHTML = "Nenhuma troca indevida foi detectada nos arquivos analisados.";
+    } else {
+      const total = latestChanges.length;
+      const porTipo = {};
 
-        function compareData() {
-            const tbody = document.getElementById("resultTable").querySelector("tbody");
-            tbody.innerHTML = "";
-            const changes = [];
+      latestChanges.forEach(change => {
+        const tipo = change.column;
+        porTipo[tipo] = (porTipo[tipo] || 0) + 1;
+      });
 
-            dataNew.forEach(newRow => {
-                const serial = newRow['Serial Number'];
-                const oldRow = dataOld.find(row => row['Serial Number'] === serial);
+      let resumo = `<strong>Total de trocas suspeitas:</strong> ${total}<br><br>`;
+      resumo += `<strong>Distribuição por componente:</strong><ul>`;
+      for (const tipo in porTipo) {
+        resumo += `<li>${tipo}: ${porTipo[tipo]}</li>`;
+      }
+      resumo += `</ul>`;
+      resumo += `<br><strong>Observação:</strong> Trocas com aumento ou queda brusca (>30%) são consideradas suspeitas.`;
+      summaryText.innerHTML = resumo;
+    }
 
-                if (oldRow) {
-                    columnsToCheck.forEach(column => {
-                        const oldValue = parseFloat(oldRow[column]) || 0;
-                        const newValue = parseFloat(newRow[column]) || 0;
-                        const diff = newValue - oldValue;
-                        let motivo = "";
+    summaryBox.style.display = 'block';
+    summaryBox.scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
 
-                        if (diff > 0) {
-                            motivo = "Possível troca indevida (aumento)";
-                        } else if (diff < -30) {
-                            motivo = "Possível troca indevida (queda brusca)";
-                        }
-
-                        if (motivo) {
-                            changes.push({
-                                serial: serial,
-                                motivo: motivo,
-                                column: column,
-                                oldValue: oldValue,
-                                newValue: newValue
-                            });
-                        }
-                    });
-                }
-            });
-
-            latestChanges = changes;
-
-            if (changes.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='5'>Nenhuma troca indevida detectada.</td></tr>";
-                return;
-            }
-
-            changes.forEach(change => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${change.serial}</td>
-                    <td>${change.motivo}</td>
-                    <td>${change.column}</td>
-                    <td>${change.oldValue}%</td>
-                    <td>${change.newValue}%</td>
-                `;
-                tbody.appendChild(row);
-            });
-
-            generateChart(changes);
-        }
-
-        function downloadCSV() {
-            if (!latestChanges.length) {
-                alert("Nenhum dado para exportar.");
-                return;
-            }
-
-            let csv = 'Serial Number,Motivo da Troca,Componente,Valor Anterior,Valor Atual\n';
-            latestChanges.forEach(change => {
-                csv += `${change.serial},${change.motivo},${change.column},${change.oldValue},${change.newValue}\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'resultado_trocas_individas.csv';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function generateChart(changes) {
-            const ctx = document.getElementById('chart').getContext('2d');
-            const labels = changes.map(c => `${c.serial} - ${c.column}`);
-            const oldValues = changes.map(c => c.oldValue);
-            const newValues = changes.map(c => c.newValue);
-
-            if (chart) chart.destroy();
-
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Valor Anterior (%)',
-                            data: oldValues,
-                            backgroundColor: '#8884d8'
-                        },
-                        {
-                            label: 'Valor Atual (%)',
-                            data: newValues,
-                            backgroundColor: '#FF6347'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Comparação Visual de Trocas'
-                        }
-                    }
-                }
-            });
-        }
-    </script>
 </body>
-
 </html>
