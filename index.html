@@ -237,6 +237,7 @@
   let dataNew = [];
   let chart;
   let latestChanges = [];
+  let correctChanges = [];
 
   const columnAliases = {
     'Número de série': 'Serial Number',
@@ -293,7 +294,7 @@
     const tbody = document.getElementById("resultTable").querySelector("tbody");
     tbody.innerHTML = "";
     const changes = [];
-    const correctChanges = [];
+    correctChanges = [];
 
     console.log("Comparando dados...");
     console.log("Data Anterior:", dataOld);
