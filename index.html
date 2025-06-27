@@ -290,66 +290,64 @@
     });
   }
 
-  function compareData() {
-    const tbody = document.getElementById("resultTable").querySelector("tbody");
-    tbody.innerHTML = "";
-    const changes = [];
-    correctChanges = [];
+ function compareData() {
+  const tbody = document.getElementById("resultTable").querySelector("tbody");
+  tbody.innerHTML = "";
+  const changes = [];
+  correctChanges = [];
 
-    console.log("Comparando dados...");
-    console.log("Data Anterior:", dataOld);
-    console.log("Data Atual:", dataNew);
+  console.log("Comparando dados...");
+  console.log("Data Anterior:", dataOld);
+  console.log("Data Atual:", dataNew);
 
-    dataNew.forEach(newRow => {
-      const serial = newRow['Serial Number'];
-      const oldRow = dataOld.find(row => row['Serial Number'] === serial);
+  dataNew.forEach(newRow => {
+    const serial = newRow['Serial Number'];
+    const oldRow = dataOld.find(row => row['Serial Number'] === serial);
 
-      if (oldRow) {
-        expectedColumns.forEach(column => {
-          const oldValue = parseFloat(oldRow[column]) || 0;
-          const newValue = parseFloat(newRow[column]) || 0;
-          const diff = newValue - oldValue;
-          let motivo = "";
+    if (oldRow) {
+      expectedColumns.forEach(column => {
+        const oldValue = parseFloat(oldRow[column]) || 0;
+        const newValue = parseFloat(newRow[column]) || 0;
+        const diff = newValue - oldValue;
+        let motivo = "";
 
-          // Troca correta: quando vai de 0% para 100%
-          if (oldValue === 0 && newValue === 100) {
-            motivo = "Troca correta (de 0% para 100%)";
-            correctChanges.push({ serial, motivo, column, oldValue, newValue });
-          }
-          // Troca incorreta por aumento excessivo (>30%)
-          else if (diff > 30) {
-            motivo = "Possível troca indevida (aumento excessivo)";
-            changes.push({ serial, motivo, column, oldValue, newValue });
-          }
-          // Troca incorreta por queda brusca (>30%)
-          else if (diff < -30) {
-            motivo = "Possível troca indevida (queda brusca)";
-            changes.push({ serial, motivo, column, oldValue, newValue });
-          }
-        });
-      }
-    });
-
-    latestChanges = changes;
-
-    if (changes.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='5'>Nenhuma troca indevida detectada.</td></tr>";
-    } else {
-      changes.forEach(change => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${change.serial}</td>
-          <td>${change.motivo}</td>
-          <td>${change.column}</td>
-          <td>${change.oldValue}%</td>
-          <td>${change.newValue}%</td>
-        `;
-        tbody.appendChild(row);
+        if (oldValue === 0 && newValue === 100) {
+          motivo = "Troca correta (de 0% para 100%)";
+          const change = { serial, motivo, column, oldValue, newValue };
+          correctChanges.push(change);
+          changes.push(change); // <- adiciona também à lista principal
+        } else if (diff > 30) {
+          motivo = "Possível troca indevida (aumento excessivo)";
+          changes.push({ serial, motivo, column, oldValue, newValue });
+        } else if (diff < -30) {
+          motivo = "Possível troca indevida (queda brusca)";
+          changes.push({ serial, motivo, column, oldValue, newValue });
+        }
       });
     }
+  });
 
-    generateChart(correctChanges, changes);
+  latestChanges = changes;
+
+  if (changes.length === 0) {
+    tbody.innerHTML = "<tr><td colspan='5'>Nenhuma troca indevida detectada.</td></tr>";
+  } else {
+    changes.forEach(change => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${change.serial}</td>
+        <td>${change.motivo}</td>
+        <td>${change.column}</td>
+        <td>${change.oldValue}%</td>
+        <td>${change.newValue}%</td>
+      `;
+      tbody.appendChild(row);
+    });
   }
+
+  generateChart(correctChanges, changes);
+}
+
 
   function downloadCSV() {
     if (!latestChanges.length) {
