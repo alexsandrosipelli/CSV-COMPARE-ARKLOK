@@ -289,10 +289,14 @@
     });
   }
 
-  function compareData() {
+function compareData() {
   const tbody = document.getElementById("resultTable").querySelector("tbody");
   tbody.innerHTML = "";
   const changes = [];
+
+  console.log("Comparando dados...");
+  console.log("Data Anterior:", dataOld);
+  console.log("Data Atual:", dataNew);
 
   dataNew.forEach(newRow => {
     const serial = newRow['Serial Number'];
@@ -305,14 +309,16 @@
         const diff = newValue - oldValue;
         let motivo = "";
 
-        if (diff > 0) {
-          // Trocas corretas de 0% a 100%
-          if (diff <= 100) {
-            motivo = "Troca correta (aumento aceitável)";
-          } else {
-            motivo = "Possível troca indevida (aumento excessivo)";
-          }
-        } else if (diff < -30) {
+        // Troca correta: quando vai de 0% para 100%
+        if (oldValue === 0 && newValue === 100) {
+          motivo = "Troca correta (de 0% para 100%)";
+        }
+        // Troca indevida por aumento excessivo (acima de 100%)
+        else if (diff > 100) {
+          motivo = "Possível troca indevida (aumento excessivo)";
+        }
+        // Troca indevida por queda brusca (> 30%)
+        else if (diff < -30) {
           motivo = "Possível troca indevida (queda brusca)";
         }
 
@@ -350,6 +356,7 @@
 
   generateChart(changes);
 }
+
   function downloadCSV() {
     if (!latestChanges.length) {
       alert("Nenhum dado para exportar.");
