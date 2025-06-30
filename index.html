@@ -321,15 +321,15 @@
           let valorPerdido = 0;
           const precoInsumo = precosPorComponente[column] || 800;
 
-                if (oldValue === 0 && newValue === 100) {
-           motivo = "Troca correta (de 0% para 100%)";
-         } else if (diff > 30) {
-           motivo = "Possível troca indevida (aumento excessivo)";
-           valorPerdido = (oldValue / 100) * precoUnitario;
-         } else if (diff < -30) {
-           motivo = "Possível troca indevida (queda brusca)";
-           valorPerdido = (oldValue / 100) * precoUnitario;
-         }
+          if (oldValue === 0 && newValue === 100) {
+            motivo = "Troca correta (de 0% para 100%)";
+          } else if (diff > 30) {
+            motivo = "Possível troca indevida (aumento excessivo)";
+            valorPerdido = (oldValue / 100) * precoInsumo;
+          } else if (diff < -30) {
+            motivo = "Possível troca indevida (queda brusca)";
+            valorPerdido = (newValue / 100) * precoInsumo;
+          }
 
           if (motivo) {
             const change = { serial, motivo, column, oldValue, newValue, valorPerdido };
