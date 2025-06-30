@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
- <style>
+  <style>
     * {
       box-sizing: border-box;
     }
@@ -235,12 +235,21 @@
   </footer>
 
 <script>
- <script>
   let dataOld = [];
   let dataNew = [];
   let chart;
   let latestChanges = [];
   let correctChanges = [];
+
+  const precosPorComponente = {
+    'Black (%)': 1133.08,
+    'Magenta (%)': 1133.08,
+    'Yellow (%)': 1133.08,
+    'Cyan (%)': 1133.08,
+    'Black Photoconductor (%)': 680.85,
+    'Imaging Unit (%)': 680.85,
+    'Maintenance Kit (%)': 1807.00
+  };
 
   const columnAliases = {
     'Número de série': 'Serial Number',
@@ -257,17 +266,6 @@
     'Black (%)', 'Magenta (%)', 'Yellow (%)', 'Cyan (%)',
     'Black Photoconductor (%)', 'Imaging Unit (%)', 'Maintenance Kit (%)'
   ];
-
-  function obterPrecoPorComponente(componente) {
-    const toner = ['Black (%)', 'Cyan (%)', 'Magenta (%)', 'Yellow (%)'];
-    const fusor = ['Maintenance Kit (%)'];
-    const fotocondutor = ['Black Photoconductor (%)', 'Imaging Unit (%)'];
-
-    if (toner.includes(componente)) return 1133.08;
-    if (fusor.includes(componente)) return 1807.00;
-    if (fotocondutor.includes(componente)) return 680.85;
-    return 800.00; // Fallback
-  }
 
   function normalizeHeaders(data) {
     return data.map(row => {
@@ -321,16 +319,16 @@
           const diff = newValue - oldValue;
           let motivo = "";
           let valorPerdido = 0;
-          const preco = obterPrecoPorComponente(column);
+          const precoInsumo = precosPorComponente[column] || 800;
 
           if (oldValue === 0 && newValue === 100) {
             motivo = "Troca correta (de 0% para 100%)";
           } else if (diff > 30) {
             motivo = "Possível troca indevida (aumento excessivo)";
-            valorPerdido = (oldValue / 100) * preco;
+            valorPerdido = (oldValue / 100) * precoInsumo;
           } else if (diff < -30) {
             motivo = "Possível troca indevida (queda brusca)";
-            valorPerdido = (newValue / 100) * preco;
+            valorPerdido = (newValue / 100) * precoInsumo;
           }
 
           if (motivo) {
