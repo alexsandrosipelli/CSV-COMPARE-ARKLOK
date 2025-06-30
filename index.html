@@ -328,7 +328,7 @@
             valorPerdido = (oldValue / 100) * precoInsumo;
           } else if (diff < -30) {
             motivo = "Possível troca indevida (queda brusca)";
-            valorPerdido = (newValue / 100) * precoInsumo;
+            valorPerdido = (oldValue / 100) * precoInsumo;
           }
 
           if (motivo) {
