@@ -1,3 +1,5 @@
+<!-- Salve como index.html ou similar -->
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -6,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-  <style>
+ <style>
     * {
       box-sizing: border-box;
     }
@@ -193,7 +195,6 @@
   <section>
     <label for="csvFileOld">Arquivo CSV do dia anterior:</label>
     <input type="file" id="csvFileOld" accept=".csv">
-
     <label for="csvFileNew">Arquivo CSV do dia atual:</label>
     <input type="file" id="csvFileNew" accept=".csv">
 
@@ -215,10 +216,11 @@
           <th>Componente</th>
           <th>Valor Anterior</th>
           <th>Valor Atual</th>
+          <th>💸 Prejuízo Estimado</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td colspan="5">Nenhuma troca indevida detectada.</td></tr>
+        <tr><td colspan="6">Nenhuma troca indevida detectada.</td></tr>
       </tbody>
     </table>
     <canvas id="chart"></canvas>
@@ -238,6 +240,8 @@
   let chart;
   let latestChanges = [];
   let correctChanges = [];
+
+  const precoUnitario = 800; // Valor estimado por suprimento
 
   const columnAliases = {
     'Número de série': 'Serial Number',
@@ -290,64 +294,64 @@
     });
   }
 
- function compareData() {
-  const tbody = document.getElementById("resultTable").querySelector("tbody");
-  tbody.innerHTML = "";
-  const changes = [];
-  correctChanges = [];
+  function compareData() {
+    const tbody = document.getElementById("resultTable").querySelector("tbody");
+    tbody.innerHTML = "";
+    const changes = [];
+    correctChanges = [];
 
-  console.log("Comparando dados...");
-  console.log("Data Anterior:", dataOld);
-  console.log("Data Atual:", dataNew);
+    dataNew.forEach(newRow => {
+      const serial = newRow['Serial Number'];
+      const oldRow = dataOld.find(row => row['Serial Number'] === serial);
 
-  dataNew.forEach(newRow => {
-    const serial = newRow['Serial Number'];
-    const oldRow = dataOld.find(row => row['Serial Number'] === serial);
+      if (oldRow) {
+        expectedColumns.forEach(column => {
+          const oldValue = parseFloat(oldRow[column]) || 0;
+          const newValue = parseFloat(newRow[column]) || 0;
+          const diff = newValue - oldValue;
+          let motivo = "";
+          let valorPerdido = 0;
 
-    if (oldRow) {
-      expectedColumns.forEach(column => {
-        const oldValue = parseFloat(oldRow[column]) || 0;
-        const newValue = parseFloat(newRow[column]) || 0;
-        const diff = newValue - oldValue;
-        let motivo = "";
+          if (oldValue === 0 && newValue === 100) {
+            motivo = "Troca correta (de 0% para 100%)";
+          } else if (diff > 30) {
+            motivo = "Possível troca indevida (aumento excessivo)";
+            valorPerdido = precoUnitario;
+          } else if (diff < -30) {
+            motivo = "Possível troca indevida (queda brusca)";
+            valorPerdido = precoUnitario;
+          }
 
-        if (oldValue === 0 && newValue === 100) {
-          motivo = "Troca correta (de 0% para 100%)";
-          const change = { serial, motivo, column, oldValue, newValue };
-          correctChanges.push(change);
-          changes.push(change); // <- adiciona também à lista principal
-        } else if (diff > 30) {
-          motivo = "Possível troca indevida (aumento excessivo)";
-          changes.push({ serial, motivo, column, oldValue, newValue });
-        } else if (diff < -30) {
-          motivo = "Possível troca indevida (queda brusca)";
-          changes.push({ serial, motivo, column, oldValue, newValue });
-        }
+          if (motivo) {
+            const change = { serial, motivo, column, oldValue, newValue, valorPerdido };
+            if (valorPerdido === 0) correctChanges.push(change);
+            changes.push(change);
+          }
+        });
+      }
+    });
+
+    latestChanges = changes;
+
+    if (changes.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='6'>Nenhuma troca indevida detectada.</td></tr>";
+    } else {
+      changes.forEach(change => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${change.serial}</td>
+          <td>${change.motivo}</td>
+          <td>${change.column}</td>
+          <td>${change.oldValue}%</td>
+          <td>${change.newValue}%</td>
+          <td>R$ ${change.valorPerdido.toFixed(2)}</td>
+        `;
+        tbody.appendChild(row);
       });
     }
-  });
 
-  latestChanges = changes;
-
-  if (changes.length === 0) {
-    tbody.innerHTML = "<tr><td colspan='5'>Nenhuma troca indevida detectada.</td></tr>";
-  } else {
-    changes.forEach(change => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${change.serial}</td>
-        <td>${change.motivo}</td>
-        <td>${change.column}</td>
-        <td>${change.oldValue}%</td>
-        <td>${change.newValue}%</td>
-      `;
-      tbody.appendChild(row);
-    });
+    generateChart(correctChanges, changes);
   }
-
-  generateChart(correctChanges, changes);
-}
-
 
   function downloadCSV() {
     if (!latestChanges.length) {
@@ -355,9 +359,9 @@
       return;
     }
 
-    let csv = 'Serial Number,Motivo da Troca,Componente,Valor Anterior,Valor Atual\n';
+    let csv = 'Serial Number,Motivo da Troca,Componente,Valor Anterior,Valor Atual,Prejuízo Estimado (R$)\n';
     latestChanges.forEach(change => {
-      csv += `${change.serial},${change.motivo},${change.column},${change.oldValue},${change.newValue}\n`;
+      csv += `${change.serial},${change.motivo},${change.column},${change.oldValue},${change.newValue},${change.valorPerdido.toFixed(2)}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -425,6 +429,7 @@
       const totalSuspeitas = latestChanges.length;
       const totalCorretas = correctChanges.length;
       const porTipo = {};
+      const totalPerda = latestChanges.reduce((sum, c) => sum + c.valorPerdido, 0);
 
       latestChanges.forEach(change => {
         const tipo = change.column;
@@ -438,7 +443,9 @@
         resumo += `<li>${tipo}: ${porTipo[tipo]}</li>`;
       }
       resumo += `</ul>`;
+      resumo += `<br><strong>💰 Prejuízo estimado total:</strong> R$ ${totalPerda.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br>`;
       resumo += `<br><strong>Observação:</strong> Trocas com aumento ou queda brusca (>30%) são consideradas suspeitas.`;
+
       summaryText.innerHTML = resumo;
     }
 
@@ -446,6 +453,5 @@
     summaryBox.scrollIntoView({ behavior: 'smooth' });
   }
 </script>
-
 </body>
 </html>
