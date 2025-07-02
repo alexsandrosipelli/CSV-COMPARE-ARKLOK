@@ -305,66 +305,79 @@
   }
 
   function compareData() {
-    const tbody = document.getElementById("resultTable").querySelector("tbody");
-    tbody.innerHTML = "";
-    const changes = [];
-    correctChanges = [];
+  const tbody = document.getElementById("resultTable").querySelector("tbody");
+  tbody.innerHTML = "";
+  const changes = [];
+  correctChanges = [];
 
-    dataNew.forEach(newRow => {
-      const serial = newRow['Serial Number'];
-      const oldRow = dataOld.find(row => row['Serial Number'] === serial);
+  dataNew.forEach(newRow => {
+    const serial = newRow['Serial Number'];
+    const oldRow = dataOld.find(row => row['Serial Number'] === serial);
 
-      if (oldRow) {
-        expectedColumns.forEach(column => {
-          const oldValue = parseFloat(oldRow[column]) || 0;
-          const newValue = parseFloat(newRow[column]) || 0;
-          const diff = newValue - oldValue;
-          let motivo = "";
-          let valorPerdido = 0;
-          const precoInsumo = precosPorComponente[column] || 800;
+    if (oldRow) {
+      const monoOld = parseInt(oldRow['Mono Lifetime Count']) || 0;
+      const monoNew = parseInt(newRow['Mono Lifetime Count']) || 0;
+      const colorOld = parseInt(oldRow['Color Lifetime Count']) || 0;
+      const colorNew = parseInt(newRow['Color Lifetime Count']) || 0;
+      const pageDiff = (monoNew - monoOld) + (colorNew - colorOld);
 
-          if (oldValue === 0 && newValue === 100) {
-            motivo = "Troca correta (de 0% para 100%)";
-          } else if (diff > 30) {
-            motivo = "Possível troca indevida (aumento excessivo)";
-            valorPerdido = (oldValue / 100) * precoInsumo;
-          } else if (diff < -30) {
-            motivo = "Possível troca indevida (queda brusca)";
-            valorPerdido = (oldValue / 100) * precoInsumo;
-          }
+      expectedColumns.forEach(column => {
+        const oldValue = parseFloat(oldRow[column]) || 0;
+        const newValue = parseFloat(newRow[column]) || 0;
+        const diff = newValue - oldValue;
+        let motivo = "";
+        let valorPerdido = 0;
+        const precoInsumo = precosPorComponente[column] || 800;
 
-          if (motivo) {
-            const change = { serial, motivo, column, oldValue, newValue, valorPerdido, pageDiff };
-            if (valorPerdido === 0) correctChanges.push(change);
-            changes.push(change);
-          }
-        });
-      }
-    });
+        if (oldValue === 0 && newValue === 100) {
+          motivo = "Troca correta (de 0% para 100%)";
+        } else if (diff > 30) {
+          motivo = "Possível troca indevida (aumento excessivo)";
+          valorPerdido = (oldValue / 100) * precoInsumo;
+        } else if (diff < -30) {
+          motivo = "Possível troca indevida (queda brusca)";
+          valorPerdido = (oldValue / 100) * precoInsumo;
+        }
 
-    latestChanges = changes;
-
-    if (changes.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='6'>Nenhuma troca indevida detectada.</td></tr>";
-    } else {
-      changes.forEach(change => {
-        const row = document.createElement("tr");
-       row.innerHTML = `
-  <td>${change.serial}</td>
-  <td>${change.motivo}</td>
-  <td>${change.column}</td>
-  <td>${change.oldValue}%</td>
-  <td>${change.newValue}%</td>
-  <td>${change.pageDiff}</td>
-  <td>R$ ${change.valorPerdido.toFixed(2)}</td>
-`;
-        tbody.appendChild(row);
+        if (motivo) {
+          const change = {
+            serial,
+            motivo,
+            column,
+            oldValue,
+            newValue,
+            valorPerdido,
+            pageDiff
+          };
+          if (valorPerdido === 0) correctChanges.push(change);
+          changes.push(change);
+        }
       });
     }
+  });
 
-    generateChart(correctChanges, changes);
+  latestChanges = changes;
+
+  if (changes.length === 0) {
+    tbody.innerHTML = "<tr><td colspan='7'>Nenhuma troca indevida detectada.</td></tr>";
+  } else {
+    changes.forEach(change => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${change.serial}</td>
+        <td>${change.motivo}</td>
+        <td>${change.column}</td>
+        <td>${change.oldValue}%</td>
+        <td>${change.newValue}%</td>
+        <td>${change.pageDiff}</td>
+        <td>R$ ${change.valorPerdido.toFixed(2)}</td>
+      `;
+      tbody.appendChild(row);
+    });
   }
 
+  generateChart(correctChanges, changes);
+}
   function downloadCSV() {
     if (!latestChanges.length) {
       alert("Nenhum dado para exportar.");
