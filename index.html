@@ -209,15 +209,17 @@
   <section>
     <h2>📈 Resultados das Comparações</h2>
     <table id="resultTable">
-      <thead>
-        <tr>
-          <th>Serial Number</th>
-          <th>Motivo da Troca</th>
-          <th>Componente</th>
-          <th>Valor Anterior</th>
-          <th>Valor Atual</th>
-          <th>💸 Prejuízo Estimado</th>
-        </tr>
+       <thead>
+    <tr>
+      <th>Serial Number</th>
+      <th>Motivo da Troca</th>
+      <th>Componente</th>
+      <th>Valor Anterior</th>
+      <th>Valor Atual</th>
+      <th>Impressões (diferença)</th>
+      <th>💸 Prejuízo Estimado</th>
+    </tr>
+  </thead>
       </thead>
       <tbody>
         <tr><td colspan="6">Nenhuma troca indevida detectada.</td></tr>
@@ -332,7 +334,7 @@
           }
 
           if (motivo) {
-            const change = { serial, motivo, column, oldValue, newValue, valorPerdido };
+            const change = { serial, motivo, column, oldValue, newValue, valorPerdido, pageDiff };
             if (valorPerdido === 0) correctChanges.push(change);
             changes.push(change);
           }
@@ -347,14 +349,15 @@
     } else {
       changes.forEach(change => {
         const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${change.serial}</td>
-          <td>${change.motivo}</td>
-          <td>${change.column}</td>
-          <td>${change.oldValue}%</td>
-          <td>${change.newValue}%</td>
-          <td>R$ ${change.valorPerdido.toFixed(2)}</td>
-        `;
+       row.innerHTML = `
+  <td>${change.serial}</td>
+  <td>${change.motivo}</td>
+  <td>${change.column}</td>
+  <td>${change.oldValue}%</td>
+  <td>${change.newValue}%</td>
+  <td>${change.pageDiff}</td>
+  <td>R$ ${change.valorPerdido.toFixed(2)}</td>
+`;
         tbody.appendChild(row);
       });
     }
@@ -382,85 +385,103 @@
     URL.revokeObjectURL(url);
   }
 
-  function generateChart(correctChanges, changes) {
-    const ctx = document.getElementById('chart').getContext('2d');
-    const labels = changes.map(c => `${c.serial} - ${c.column}`);
-    const oldValues = changes.map(c => c.oldValue);
-    const newValues = changes.map(c => c.newValue);
+function generateChart(correctChanges, changes) {
+  const ctx = document.getElementById('chart').getContext('2d');
+  const labels = changes.map(c => `${c.serial} - ${c.column}`);
+  const oldValues = changes.map(c => c.oldValue);
+  const newValues = changes.map(c => c.newValue);
+  const pageDiffs = changes.map(c => c.pageDiff);
 
-    if (chart) chart.destroy();
+  if (chart) chart.destroy();
 
-    chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: 'Valor Anterior (%)',
-            data: oldValues,
-            backgroundColor: '#8884d8'
-          },
-          {
-            label: 'Valor Atual (%)',
-            data: newValues,
-            backgroundColor: '#FF6347'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100
-          }
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Valor Anterior (%)',
+          data: oldValues,
+          backgroundColor: '#8884d8'
         },
-        plugins: {
-          legend: {
-            position: 'top'
-          },
-          title: {
-            display: true,
-            text: 'Comparação Visual de Trocas'
-          }
+        {
+          label: 'Valor Atual (%)',
+          data: newValues,
+          backgroundColor: '#FF6347'
+        },
+        {
+          label: 'Impressões (diferença)',
+          data: pageDiffs,
+          backgroundColor: '#6dd66d'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'top'
+        },
+        title: {
+          display: true,
+          text: 'Comparação Visual de Trocas e Impressões'
         }
       }
-    });
-  }
+    }
+  });
+}
 
   function showSummary() {
-    const summaryBox = document.getElementById('summary');
-    const summaryText = document.getElementById('summaryText');
+  const summaryBox = document.getElementById('summary');
+  const summaryText = document.getElementById('summaryText');
 
-    if (!latestChanges.length) {
-      summaryText.innerHTML = "Nenhuma troca indevida foi detectada nos arquivos analisados.";
-    } else {
-      const totalSuspeitas = latestChanges.length;
-      const totalCorretas = correctChanges.length;
-      const porTipo = {};
-      const totalPerda = latestChanges.reduce((sum, c) => sum + c.valorPerdido, 0);
+  if (!latestChanges.length) {
+    summaryText.innerHTML = "Nenhuma troca indevida foi detectada nos arquivos analisados.";
+  } else {
+    const totalSuspeitas = latestChanges.length;
+    const totalCorretas = correctChanges.length;
+    const porTipo = {};
+    let totalPerda = 0;
+    let totalImpressoes = 0;
+    let abaixoDoLimite = 0;
 
-      latestChanges.forEach(change => {
-        const tipo = change.column;
-        porTipo[tipo] = (porTipo[tipo] || 0) + 1;
-      });
+    latestChanges.forEach(change => {
+      const tipo = change.column;
+      porTipo[tipo] = (porTipo[tipo] || 0) + 1;
+      totalPerda += change.valorPerdido;
+      totalImpressoes += change.pageDiff;
+      if (change.pageDiff < 300) abaixoDoLimite++;
+    });
 
-      let resumo = `<strong>Total de trocas suspeitas:</strong> ${totalSuspeitas}<br>`;
-      resumo += `<strong>Total de trocas corretas:</strong> ${totalCorretas}<br><br>`;
-      resumo += `<strong>Distribuição por componente:</strong><ul>`;
-      for (const tipo in porTipo) {
-        resumo += `<li>${tipo}: ${porTipo[tipo]}</li>`;
-      }
-      resumo += `</ul>`;
-      resumo += `<br><strong>💰 Prejuízo estimado total:</strong> R$ ${totalPerda.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br>`;
-      resumo += `<br><strong>Observação:</strong> Trocas com aumento ou queda brusca (>30%) são consideradas suspeitas.`;
+    const mediaImpressao = (totalImpressoes / latestChanges.length).toFixed(2);
 
-      summaryText.innerHTML = resumo;
+    let resumo = `<strong>Total de trocas suspeitas:</strong> ${totalSuspeitas}<br>`;
+    resumo += `<strong>Total de trocas corretas:</strong> ${totalCorretas}<br><br>`;
+    resumo += `<strong>Impressões totais realizadas:</strong> ${totalImpressoes}<br>`;
+    resumo += `<strong>Média de impressões por troca:</strong> ${mediaImpressao}<br>`;
+    resumo += `<strong>Trocas com menos de 300 impressões:</strong> ${abaixoDoLimite}<br><br>`;
+
+    resumo += `<strong>Distribuição por componente:</strong><ul>`;
+    for (const tipo in porTipo) {
+      resumo += `<li>${tipo}: ${porTipo[tipo]}</li>`;
     }
+    resumo += `</ul>`;
 
-    summaryBox.style.display = 'block';
-    summaryBox.scrollIntoView({ behavior: 'smooth' });
+    resumo += `<br><strong>💰 Prejuízo estimado total:</strong> R$ ${totalPerda.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br>`;
+    resumo += `<br><strong>Observação:</strong> Trocas com aumento ou queda brusca (>30%) e impressões abaixo de 300 páginas são consideradas suspeitas.`;
+
+    summaryText.innerHTML = resumo;
   }
+
+  summaryBox.style.display = 'block';
+  summaryBox.scrollIntoView({ behavior: 'smooth' });
+}
+
 </script>
 </body>
 </html>
