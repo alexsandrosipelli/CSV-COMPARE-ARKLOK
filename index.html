@@ -49,6 +49,58 @@
       width: 180px;
       margin-bottom: 20px;
     }
+   #comparisonLoader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loaderBox {
+  text-align: center;
+}
+
+.loaderBox p {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.bar-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.bar {
+  width: 10px;
+  height: 40px;
+  background-color: #FF6347;
+  border-radius: 4px;
+  animation: bounce 1.2s infinite ease-in-out;
+}
+
+.bar1 { animation-delay: 0s; }
+.bar2 { animation-delay: 0.2s; }
+.bar3 { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scaleY(0.4);
+  }
+  40% {
+    transform: scaleY(1);
+  }
+}
+
 
     h1 {
       font-size: 2.5rem;
@@ -205,6 +257,16 @@
       <button onclick="showSummary()">📌 Resumo</button>
     </div>
   </section>
+ <div id="comparisonLoader">
+  <div class="loaderBox">
+    <div class="bar-container">
+      <div class="bar bar1"></div>
+      <div class="bar bar2"></div>
+      <div class="bar bar3"></div>
+    </div>
+    <p>Analisando informações dos insumos...</p>
+  </div>
+</div>
 
   <section>
     <h2>📈 Resultados das Comparações</h2>
@@ -280,29 +342,31 @@
     });
   }
 
-  function processCSV() {
-    const fileOld = document.getElementById("csvFileOld").files[0];
-    const fileNew = document.getElementById("csvFileNew").files[0];
+function processCSV() {
+  const fileOld = document.getElementById("csvFileOld").files[0];
+  const fileNew = document.getElementById("csvFileNew").files[0];
 
-    if (!fileOld || !fileNew) {
-      alert("Por favor, selecione os dois arquivos CSV.");
-      return;
-    }
-
-    Papa.parse(fileOld, {
-      complete: function(resultsOld) {
-        dataOld = normalizeHeaders(resultsOld.data);
-        Papa.parse(fileNew, {
-          complete: function(resultsNew) {
-            dataNew = normalizeHeaders(resultsNew.data);
-            compareData();
-          },
-          header: true
-        });
-      },
-      header: true
-    });
+  if (!fileOld || !fileNew) {
+    alert("Por favor, selecione os dois arquivos CSV.");
+    return;
   }
+
+  document.getElementById("comparisonLoader").style.display = "flex"; // Mostra animação
+
+  Papa.parse(fileOld, {
+    complete: function(resultsOld) {
+      dataOld = normalizeHeaders(resultsOld.data);
+      Papa.parse(fileNew, {
+        complete: function(resultsNew) {
+          dataNew = normalizeHeaders(resultsNew.data);
+          compareData();
+        },
+        header: true
+      });
+    },
+    header: true
+  });
+}
 
   function compareData() {
   const tbody = document.getElementById("resultTable").querySelector("tbody");
@@ -377,6 +441,7 @@
   }
 
   generateChart(correctChanges, changes);
+   document.getElementById("comparisonLoader").style.display = "none";
 }
   function downloadCSV() {
     if (!latestChanges.length) {
@@ -496,5 +561,6 @@ function generateChart(correctChanges, changes) {
 }
 
 </script>
+ 
 </body>
 </html>
