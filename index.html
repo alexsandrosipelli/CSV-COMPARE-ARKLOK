@@ -61,6 +61,8 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  transition: opacity 0.5s ease;
+
 }
 
 .loaderBox {
@@ -81,23 +83,21 @@
 }
 
 .bar {
-  width: 10px;
-  height: 40px;
+  width: 12px;
+  height: 50px;
   background-color: #FF6347;
-  border-radius: 4px;
-  animation: bounce 1.2s infinite ease-in-out;
+  border-radius: 6px;
+  animation: riseFall 2s infinite ease-in-out;
 }
 
-.bar1 { animation-delay: 0s; }
-.bar2 { animation-delay: 0.2s; }
-.bar3 { animation-delay: 0.4s; }
-
-@keyframes bounce {
-  0%, 80%, 100% {
-    transform: scaleY(0.4);
+@keyframes riseFall {
+  0%, 100% {
+    transform: scaleY(0.3);
+    opacity: 0.6;
   }
-  40% {
+  50% {
     transform: scaleY(1);
+    opacity: 1;
   }
 }
 
@@ -441,7 +441,14 @@ function processCSV() {
   }
 
   generateChart(correctChanges, changes);
-   document.getElementById("comparisonLoader").style.display = "none";
+setTimeout(() => {
+  const loader = document.getElementById("comparisonLoader");
+  loader.style.opacity = '0';
+  setTimeout(() => {
+    loader.style.display = 'none';
+    loader.style.opacity = '1'; // reseta para próxima vez
+  }, 500);
+}, 2500);
 }
   function downloadCSV() {
     if (!latestChanges.length) {
